@@ -1,14 +1,17 @@
 const axios = require('axios');
 const readline = require('readline-sync');
 
-console.log('What postcode do you want to test?');
-const postcode = readline.prompt();
-const postcodesUrl = 'https://api.postcodes.io/postcodes/' + postcode;
+const distance = 1000;
+const credential = 'app_id=13411ed4&app_key=e15ea63629e09138b8c6c84355de0b68';
 
-// const data = axios.get('https://api.tfl.gov.uk/StopPoint/490008660N/Arrivals')
-// console.log(data)
+function init() {
+    console.log('What postcode do you want to test?');
+    const postcode = readline.prompt();
+    const postcodesUrl = 'https://api.postcodes.io/postcodes/' + postcode;
+    return postcodesUrl
+}
 
-async function getLonLatData() {
+async function getLonLatData(postcodesUrl) {
     try {
         const response = await axios.get(postcodesUrl);
         const longitude = response["data"]["result"]["longitude"];
@@ -21,53 +24,46 @@ async function getLonLatData() {
 }
 
 async function getStopCode(LonLatData) {
-    const stopsUrl = 'https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanOnStreetBusCoachStopPair&radius=200&useStopPointHierarchy=true&modes=bus&returnLines=false&lat=' + LonLatData[1] + '&lon=' + LonLatData[0];
+    const stopsUrl = 'https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanOnStreetBusCoachStopPair&radius=' + distance + '&useStopPointHierarchy=true&modes=bus&returnLines=true&lat=' + LonLatData[1] + '&lon=' + LonLatData[0] + '&' + credential;
     try {
         const response = await axios.get(stopsUrl);
-        console.log(response['data']['stopPoints'])
-        if (response['data']['stopPoints'].length == 0) {
-            console.log('empty stop points')
-            throw 'error';            
+        const stationsRawData = response['data']['stopPoints']
+        const idList = [];
+        for(let i = 0; i < stationsRawData.length; i++) {
+            const stationId = stationsRawData[i]['children']
+            let pairIdList = [];
+            for(let j in stationId) {pairIdList.push(stationId[j]['id'])};
+            if(pairIdList.length != 0) {idList.push(pairIdList)};
         }
-        else {
-            let data = '';
-            data = response['data']['stopPoints'][0]['children'][0]['id']
-            console.log(data)
-            return data;
+        if(idList.length != 0) {
+            return idList
         }
-        
-
-        //const naptanId = data['stopPoints'][i]['lineGroup'][0]['naptanIdReference'];
-        //console.log(naptanId)
-        // const url = 'https://api.tfl.gov.uk/StopPoint/' + naptanId;
-        // const StopCodeData = await axios.get(url);
-        // console.log(StopCodeData)
-
-        //const naptanCode = StopCodeData["data"]["lineGroup"][0]["naptanIdReference"]
-        //console.log(naptanId)
-        
+        else{
+            throw "This is no bus stop nearby."
+        }
     }
     catch (error) {
         console.log(error);
     }
 }
 
-
-async function getAndLogBusData(StopCode) {
-    const BusesUrl = 'https://api.tfl.gov.uk/StopPoint/' + StopCode + '/Arrivals';
+async function getBusData(stopCodeArr) {
     try {
-        const response = await axios.get(BusesUrl);
-        logBusData(response);
-        
-        return;
+        let responseData = [];
+        for(let i = 0; i < stopCodeArr.length; i ++){
+            const BusesUrl = 'https://api.tfl.gov.uk/StopPoint/' + stopCodeArr[i] + '/Arrivals?' + credential;
+            const rawData = await axios.get(BusesUrl);
+            responseData = responseData.concat(rawData['data'])
+        }
+        return responseData;
     } 
     catch (error) {
-        console.error('error in log bus');
+        console.error('Invalid stop code');
     }
 }
   
-const logBusData = (response) => {
-    const DataArray = response['data'];
+const logBusData = (DataArray) => {
+    const stationName = DataArray[0]['stationName']
     let listOfBuses = [];
     for (let i = 0; i < DataArray.length; i++ ) {
         let BusData = new incomingBus(DataArray[i]['destinationName'], DataArray[i]['lineId'], DataArray[i]['timeToStation']);
@@ -78,6 +74,7 @@ const logBusData = (response) => {
     for (let index in trimmedListOfBuses) {
         trimmedListOfBuses[index].time = Math.floor(trimmedListOfBuses[index].time / 60);
     };
+    console.log('Station Name: ' + stationName)
     for (let bus in trimmedListOfBuses) {
         trimmedListOfBuses[bus].busLogger();
     };
@@ -95,19 +92,13 @@ class incomingBus {
 };
 
 const main = async () => {
-    let LonLatData = await getLonLatData();
+    let postcodesUrl = await init()
+    let LonLatData = await getLonLatData(postcodesUrl);
     let StopCode = await getStopCode(LonLatData);
-    let BusData = await getAndLogBusData(StopCode);
+    let BusData0 = await getBusData(StopCode[0]);
+    let BusData1 = await getBusData(StopCode[1]);
+    await logBusData(BusData0);
+    await logBusData(BusData1);
 }
 main();
-// async function test() {
-//     try {
-//         const response = await axios.get('https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanOnStreetBusCoachStopPair&radius=200&useStopPointHierarchy=false&modes=bus&returnLines=false&lat=51.5074&lon=0.1278');
-//     console.log(response['data'])
-//     }
-//     catch (error) {
-//         console.log(error)
-//     }
-// }
-// test()
 
