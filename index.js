@@ -4,12 +4,13 @@ const readline = require('readline-sync');
 const distance = 1000;
 const credential = 'app_id=13411ed4&app_key=e15ea63629e09138b8c6c84355de0b68';
 
-function init() {
-    console.log('What postcode do you want to test?');
-    const postcode = readline.prompt();
-    const postcodesUrl = 'https://api.postcodes.io/postcodes/' + postcode;
-    return postcodesUrl
-}
+// function init() {
+//     console.log('What postcode do you want to test?');
+//     //const postcode = readline.prompt();
+//     const postcode = 'E1 6AN'
+//     const postcodesUrl = 'https://api.postcodes.io/postcodes/' + postcode;
+//     return postcodesUrl
+// }
 
 async function getLonLatData(postcodesUrl) {
     try {
@@ -19,7 +20,7 @@ async function getLonLatData(postcodesUrl) {
         return [longitude, latitude];
     }   
     catch (error) {
-        console.error(error);
+        throw 'Invalid postcode';
     }
 }
 
@@ -39,11 +40,11 @@ async function getStopCode(LonLatData) {
             return idList
         }
         else{
-            throw "This is no bus stop nearby."
+            throw "There is no bus stop nearby.";
         }
     }
     catch (error) {
-        console.log(error);
+        throw "There is no bus stop nearby."
     }
 }
 
@@ -58,7 +59,7 @@ async function getBusData(stopCodeArr) {
         return responseData;
     } 
     catch (error) {
-        console.error('Invalid stop code');
+        throw 'Invalid stop code';
     }
 }
   
@@ -75,9 +76,7 @@ const logBusData = (DataArray) => {
         trimmedListOfBuses[index].time = Math.floor(trimmedListOfBuses[index].time / 60);
     };
     console.log('Station Name: ' + stationName)
-    for (let bus in trimmedListOfBuses) {
-        trimmedListOfBuses[bus].busLogger();
-    };
+    return([stationName, trimmedListOfBuses]);
 };
 
 class incomingBus {
@@ -91,14 +90,26 @@ class incomingBus {
     };
 };
 
-const main = async () => {
-    let postcodesUrl = await init()
+exports.main = async (postcode) => {
+    let postcodesUrl = 'https://api.postcodes.io/postcodes/' + postcode;
     let LonLatData = await getLonLatData(postcodesUrl);
     let StopCode = await getStopCode(LonLatData);
     let BusData0 = await getBusData(StopCode[0]);
     let BusData1 = await getBusData(StopCode[1]);
-    await logBusData(BusData0);
-    await logBusData(BusData1);
+    let stationAndBusData0 = await logBusData(BusData0);
+    let stationAndBusData1 = await logBusData(BusData1);
+    stationName0 = stationAndBusData0[0];
+    busesStation0 = stationAndBusData0[1];
+    stationName1 = stationAndBusData1[0];
+    busesStation1 = stationAndBusData1[1];
+    let dataObject = {
+        'Name0' : stationName0,
+        'Buses0' : busesStation0,
+        'Name1' : stationName1,
+        'Buses1' : busesStation1
+    };
+
+    return dataObject;
 }
-main();
+//main();
 
