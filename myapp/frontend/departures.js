@@ -17,15 +17,25 @@ function myFunction() {
     const url = 'http://localhost:3000/departureBoards?postcode=' + postcode;
     xhttp.open('GET', url, true);
     xhttp.onload = function() {
-        let formattedData = {};
-        let strtoprint = '';
-        for (let index in xhttp.response) {
-            const stopName = xhttp.response[index][0];
-            const stopNameStr = `<h3> ${stopName} </h3>`
-            strtoprint += stopNameStr;
+        const repsonseData = JSON.parse(xhttp.response)
+        document.getElementById("stopName1").innerHTML= repsonseData['Name0']
+        let StringToPrint = ''
+        let busCo = repsonseData['Buses0']
+        for (let index in busCo) {
+            StringToPrint += `<li> ${busCo[index]['time']} minutes: ${busCo[index]['route']} to ${busCo[index]['destination']} </li>`
         }
-        repsonseData = JSON.parse(xhttp.response)
-        document.getElementById("bus1").innerHTML= xhttp.responseXML
+        document.getElementById("list1").innerHTML = StringToPrint
+
+        document.getElementById("stopName2").innerHTML= repsonseData['Name1']
+        StringToPrint = ''
+        busCo = repsonseData['Buses1']
+        for (let index in busCo) {
+            StringToPrint += `<li> ${busCo[index]['time']} minutes: ${busCo[index]['route']} to ${busCo[index]['destination']} </li>`
+        }
+        document.getElementById("list2").innerHTML = StringToPrint
+
+
+        console.log(JSON.parse(xhttp.response))
         //document.getElementById("stopName1").innerHTML = `${strtoprint}`
     }
     xhttp.send()
