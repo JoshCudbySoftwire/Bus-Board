@@ -98,10 +98,10 @@ exports.main = async (postcode) => {
     let BusData1 = await getBusData(StopCode[1]);
     let stationAndBusData0 = await logBusData(BusData0);
     let stationAndBusData1 = await logBusData(BusData1);
-    stationName0 = stationAndBusData0[0];
-    busesStation0 = stationAndBusData0[1];
-    stationName1 = stationAndBusData1[0];
-    busesStation1 = stationAndBusData1[1];
+    let stationName0 = stationAndBusData0[0];
+    let busesStation0 = stationAndBusData0[1];
+    let stationName1 = stationAndBusData1[0];
+    let busesStation1 = stationAndBusData1[1];
     let dataObject = {
         'Name0' : stationName0,
         'Buses0' : busesStation0,
