@@ -7,23 +7,20 @@
     <script src="departures.js"></script>
   </head>
   <body>
-    <h1>BusBoard</h1>
+    <h1>Bus Departure Board</h1>
+    <a href="/History">History of Buses</a>
     <form id= "myForm" action="javascript:void(0)" onsubmit="void(0);">
         Postcode:<br>
         <input id = "postcode" type="text" name="postcode">
         <input type="button" onclick="myFunction()" value="Submit form">
     </form>
     <div id="results">
-        <h2>Results</h2>
-        <h3 id='stopName1'>Example stop 1</h3>
+        <h2 id='listHeader'>Buses will be shown below</h2>
+        <h3 id='stopName1'></h3>
         <ul id="list1">
-            <li id ="bus1">2 minutes: 123 to Example Street</li>
-            <li>3 minutes: 456 to Fantasy Land</li>
         </ul>
-        <h3 id='stopName2'>Example stop 2</h3>
+        <h3 id='stopName2'></h3>
         <ul id="list2">
-            <li>1 minute: 123 to Example Street</li>
-            <li>4 minutes: 456 to Fantasy Land</li>
         </ul>
     </div>
   </body>

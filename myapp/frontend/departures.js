@@ -7,6 +7,7 @@ function myFunction() {
     xhttp.open('GET', url, true);
     xhttp.onload = function() {
         const repsonseData = JSON.parse(xhttp.response)
+        document.getElementById("listHeader").innerHTML = "Buses are shown below"
         document.getElementById("stopName1").innerHTML= repsonseData['Name0']
         let StringToPrint = ''
         let busCo = repsonseData['Buses0']
